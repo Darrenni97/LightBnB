@@ -22,7 +22,8 @@ const getUserWithEmail = function(email) {
   SELECT * FROM users
   WHERE email = $1
   `, [email])
-  .then(res => res.rows[0]);
+  .then(res => res.rows[0])
+  .catch(err => err.stack);
 }
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -36,7 +37,8 @@ const getUserWithId = function(id) {
   SELECT * FROM users
   WHERE id = $1
   `, [id])
-  .then(res => res.rows[0]);
+  .then(res => res.rows[0])
+  .catch(err => err.stack);
 }
 exports.getUserWithId = getUserWithId;
 
@@ -52,7 +54,8 @@ const addUser =  function(user) {
   INSERT INTO users(name, email, password)
   VALUES ($1, $2, $3) RETURNING *;
   `, values)
-  .then(res => res.rows[0]);
+  .then(res => res.rows[0])
+  .catch(err => err.stack);
 }
 exports.addUser = addUser;
 
@@ -64,7 +67,19 @@ exports.addUser = addUser;
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool.query(`
+  SELECT properties.id, properties.title, properties.cost_per_night, start_date, end_date, avg(property_reviews.rating) as average_rating, properties.number_of_bathrooms, properties.number_of_bedrooms, properties.parking_spaces, properties.thumbnail_photo_url, properties.cover_photo_url
+  FROM reservations
+  JOIN properties ON reservations.property_id = properties.id
+  JOIN property_reviews ON properties.id = property_reviews.property_id 
+  WHERE reservations.guest_id = $1 
+  AND reservations.end_date < now()::date
+  GROUP BY properties.id, reservations.id
+  ORDER BY start_date
+  LIMIT $2;
+  `, [guest_id, limit])
+  .then(res => res.rows)
+  .catch(err => err.stack);
 }
 exports.getAllReservations = getAllReservations;
 
@@ -81,7 +96,8 @@ const getAllProperties = function(options, limit = 10) {
   SELECT * FROM properties
   LIMIT $1
   `, [limit])
-  .then(res => res.rows);
+  .then(res => res.rows)
+  .catch(err => err.stack);
 }
 exports.getAllProperties = getAllProperties;
 
