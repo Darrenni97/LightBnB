@@ -163,7 +163,21 @@ const addProperty = function(property) {
     property.post_code,
   ];
   return pool.query(`
-  INSERT INTO properties(owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, country, street, city, province, post_code)
+  INSERT INTO properties(
+    owner_id,
+    title, description,
+    thumbnail_photo_url,
+    cover_photo_url,
+    cost_per_night,
+    parking_spaces,
+    number_of_bathrooms,
+    number_of_bedrooms,
+    country,
+    street,
+    city,
+    province,
+    post_code
+  )
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9 ,$10, $11, $12, $13, $14) RETURNING *;
   `, values)
   .then(res => res.rows[0])
